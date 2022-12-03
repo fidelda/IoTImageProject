@@ -1,20 +1,31 @@
 package com.example.superfuniotproject;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
-import android.os.AsyncTask;
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.Switch;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Locale;
 
 import ch.ethz.ssh2.Connection;
 import ch.ethz.ssh2.Session;
@@ -22,71 +33,117 @@ import ch.ethz.ssh2.StreamGobbler;
 
 public class MainActivity extends AppCompatActivity {
 
-    TextView txv_temp_indoor = null;
-    TextView txv_outdoor_light_show = null;
-    Switch lightToggle = null;
-    Button btnUpdateTemp = null;
-    String temp = "";
+        public static final Integer RecordAudioRequestCode = 1;
+        private SpeechRecognizer speechRecognizer;
+        private TextView textView;
+        private ImageView micButton;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        @Override
+        protected void onCreate(final Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+            if(ContextCompat.checkSelfPermission(this,Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
+                checkPermission();
+            }
 
-        txv_temp_indoor = (TextView) findViewById(R.id.indoorTempShow);
-        txv_temp_indoor.setText("the fetched indoor temp value");
+            textView = findViewById(R.id.text);
+            micButton = findViewById(R.id.button);
+            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
 
-        txv_outdoor_light_show = (TextView)  findViewById(R.id.outdoorLightShow);
-        txv_outdoor_light_show.setText("Off");
+            final Intent speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
 
-        lightToggle = (Switch) findViewById(R.id.btnToggle);
-        lightToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                // below you write code to change switch status and action to take
-                if (isChecked) {
-                    //do something if checked
-                    new AsyncTask<Integer, Void, Void>(){
-                        @Override
-                        protected Void doInBackground(Integer... params) {
-                            run("python group4/LightOn.py");
-                            return null;
-                        }
-                    }.execute(1);
-                    txv_outdoor_light_show.setText("On");
-                } else {
-                    new AsyncTask<Integer, Void, Void>(){
-                        @Override
-                        protected Void doInBackground(Integer... params) {
-                            run("python group4/LightOff.py");
-                            return null;
-                        }
-                    }.execute(1);
-                    txv_outdoor_light_show.setText("Off");
+            speechRecognizer.setRecognitionListener(new RecognitionListener() {
+                @Override
+                public void onReadyForSpeech(Bundle bundle) {
+
                 }
-            }
-        });
 
-        btnUpdateTemp = (Button) findViewById(R.id.btnUpdateTemp);
-        btnUpdateTemp.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                new AsyncTask<Integer, Void, Void>(){
-                    @Override
-                    protected Void doInBackground(Integer... params) {
-                        run("python group4/GetTemperature.py");
-                        return null;
+                @Override
+                public void onBeginningOfSpeech() {
+                    textView.setText("");
+                    textView.setHint("Listening...");
+                }
+
+                @Override
+                public void onRmsChanged(float v) {
+
+                }
+
+                @Override
+                public void onBufferReceived(byte[] bytes) {
+
+                }
+
+                @Override
+                public void onEndOfSpeech() {
+
+                }
+
+                @Override
+                public void onError(int i) {
+
+                }
+
+                @Override
+                public void onResults(Bundle bundle) {
+                    micButton.setImageResource(R.drawable.icons8_microphone_60);
+                    ArrayList<String> data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    textView.setText(data.get(0));
+                }
+
+                @Override
+                public void onPartialResults(Bundle bundle) {
+
+                }
+
+                @Override
+                public void onEvent(int i, Bundle bundle) {
+
+                }
+            });
+
+            micButton.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View view, MotionEvent motionEvent) {
+                    if (motionEvent.getAction() == MotionEvent.ACTION_UP){
+                        speechRecognizer.stopListening();
                     }
-                    @Override
-                    protected void onPostExecute(Void result) {
-                        txv_temp_indoor.setText(temp);
+                    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN){
+                        micButton.setImageResource(R.drawable.icons8_microphone_blue_60);
+                        speechRecognizer.startListening(speechRecognizerIntent);
                     }
-                }.execute(1);
+                    return false;
+                }
+            });
+
+
+        }
+
+        @Override
+        protected void onDestroy() {
+            super.onDestroy();
+            speechRecognizer.destroy();
+        }
+
+        private void checkPermission() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.RECORD_AUDIO},RecordAudioRequestCode);
             }
-        });
-    }
+        }
+
+        @Override
+        public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            if (requestCode == RecordAudioRequestCode && grantResults.length > 0 ){
+                if(grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    Toast.makeText(this,"Permission Granted",Toast.LENGTH_SHORT).show();
+            }
+        }
 
     public void run (String command) {
-        String hostname = "130.237.177.205";
+        String hostname = "130.237.177.208";
         String username = "pi";
         String password = "IoT@2021";
         try
@@ -110,9 +167,6 @@ public class MainActivity extends AppCompatActivity {
                 if (line == null)
                     break;
                 System.out.println(line);
-                if(command == "python group4/GetTemperature.py") {
-                    temp = line;
-                }
             }
             /* Show exit status, if available (otherwise "null") */
             System.out.println("ExitCode: " + sess.getExitStatus());
