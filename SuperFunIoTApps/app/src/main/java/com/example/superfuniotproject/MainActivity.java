@@ -96,10 +96,14 @@ public class MainActivity extends AppCompatActivity {
                 public void onResults(Bundle bundle) {
                     micButton.setImageResource(R.drawable.icons8_microphone_60);
                     ArrayList<String> data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    try {
-                        background.setBackgroundColor(Color.parseColor(data.get(0)));
-                    } catch (Exception e) {
-                        System.out.println(data + "is not a color");
+                    String[] words = data.get(0).split("\\W+");
+                    System.out.println(data.get(0));
+                    if(words[0].equals("color")) {
+                        try {
+                            background.setBackgroundColor(Color.parseColor(words[1]));
+                        } catch (Exception e) {
+                            System.out.println(words[1] + " is not a color");
+                        }
                     }
                     textView.setText(data.get(0));
                 }
