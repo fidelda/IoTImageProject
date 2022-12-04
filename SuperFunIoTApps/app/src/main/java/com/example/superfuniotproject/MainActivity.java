@@ -2,12 +2,14 @@ package com.example.superfuniotproject;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintSet;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -16,7 +18,9 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
         private SpeechRecognizer speechRecognizer;
         private TextView textView;
         private ImageView micButton;
+        private RelativeLayout background;
 
         @Override
         protected void onCreate(final Bundle savedInstanceState) {
@@ -49,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
             textView = findViewById(R.id.text);
             micButton = findViewById(R.id.button);
             speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            background = findViewById(R.id.background);
 
             final Intent speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
@@ -90,6 +96,11 @@ public class MainActivity extends AppCompatActivity {
                 public void onResults(Bundle bundle) {
                     micButton.setImageResource(R.drawable.icons8_microphone_60);
                     ArrayList<String> data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    try {
+                        background.setBackgroundColor(Color.parseColor(data.get(0)));
+                    } catch (Exception e) {
+                        System.out.println(data + "is not a color");
+                    }
                     textView.setText(data.get(0));
                 }
 
