@@ -1,11 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#4A4FB2"
     tools:context=".MainActivity">
+
+    <Button
+        android:id="@+id/button_go_to_instructions"
+        android:layout_width="63dp"
+        android:layout_height="75dp"
+        android:layout_margin="20dp"
+        android:layout_marginEnd="76dp"
+        android:layout_marginBottom="100dp"
+        android:backgroundTint="@color/purple_700"
+        android:padding="15dp"
+        android:text="\?"
+        android:textSize="26sp"
+        app:cornerRadius="30dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/explanation_text"
+        android:layout_width="238dp"
+        android:layout_height="49dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="100dp"
+        android:text="Don’t forget to choose a color for your preferred tile by pressing the &quot;SPEAK&quot; button!"
+        android:textColor="#C4C9F6"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/header_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="48dp"
+        android:fontFamily="sans-serif-medium"
+        android:shadowColor="#673AB7"
+        android:text="Hello!"
+        android:textColor="#FFFFFF"
+        android:textSize="34sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -14,7 +54,7 @@
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="334dp"
+            android:layout_height="380dp"
             android:background="@color/white" />
 
         <RelativeLayout
@@ -26,17 +66,21 @@
             android:layout_marginRight="10dp">
 
             <TextView
-                android:id="@+id/text"
+                android:id="@+id/text_speech"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_centerInParent="true"
-                android:layout_marginRight="15dp"
-                android:layout_toLeftOf="@id/button"
-                android:hint="Tap to Speak"
-                android:padding="10dp" />
+                android:layout_marginEnd="15dp"
+                android:hint="@string/tap_to_speak"
+                android:padding="10dp"
+                android:shadowColor="#673AB7"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#ADADAD"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
-                android:id="@+id/button"
+                android:id="@+id/button_mic"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_alignParentRight="true"
@@ -52,5 +96,4 @@
 
     </LinearLayout>
 
-
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

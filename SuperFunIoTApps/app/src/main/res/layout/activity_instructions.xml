@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#3B78A8"
+    tools:context=".InstructionsActivity">
+
+    <Button
+        android:id="@+id/button_go_back"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="164dp"
+        android:background="#3CDA64"
+        android:text="BACK"
+        android:textColor="#FFFFFF"
+        app:iconTint="#635353"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:rippleColor="#A289CD"
+        tools:ignore="TextContrastCheck" />
+
+    <TextView
+        android:id="@+id/explanation1"
+        android:layout_width="284dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="64dp"
+        android:layout_marginTop="180dp"
+        android:layout_marginEnd="64dp"
+        android:text="Press the microphone on the main page and give instructions for your matrix as seen in the examples below."
+        android:textAlignment="center"
+        android:textColor="#F3EDED"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/example1"
+        android:layout_width="363dp"
+        android:layout_height="158dp"
+        android:layout_marginTop="48dp"
+        android:fontFamily="sans-serif-black"
+        android:text="@string/examples"
+        android:textAlignment="center"
+        android:textColor="#B6E8B8"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/explanation1" />
+</androidx.constraintlayout.widget.ConstraintLayout>

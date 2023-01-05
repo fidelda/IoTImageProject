@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">SuperFunIoTProject</string>
     <string name="app_activity_title">Chessboard Painter</string>
-    <string name="connection_status">Status:</string>
+    <string name="tap_to_speak">Tap to Speak</string>
+    <string name="examples">\"B6 Color Green\" (position + "color" + the color).\n \n \"All Color Red\" (if you\'d like all tiles to have the same color). \n \n Or you can even choose one of our redesigned artworks: "mario", "pacman", "heart", "pig", "pikachu", "amongus", "tree", "creeper" and "smiley". \n To draw Mario for example, just say \"Draw mario\"</string>
 </resources>

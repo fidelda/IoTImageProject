@@ -1,17 +1,9 @@
 package com.example.superfuniotproject;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintSet;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -23,9 +15,13 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -44,11 +40,9 @@ public class MainActivity extends AppCompatActivity {
     private SpeechRecognizer speechRecognizer;
     private TextView textView;
     private ImageView micButton;
-    private RelativeLayout background;
 
-    @SuppressLint("ClickableViewAccessibility")
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -56,27 +50,31 @@ public class MainActivity extends AppCompatActivity {
             checkPermission();
         }
 
-        textView = findViewById(R.id.text);
-        micButton = findViewById(R.id.button);
+        Button goToInstructionsButton = findViewById(R.id.button_go_to_instructions);
+        textView = findViewById(R.id.text_speech);
+        micButton = findViewById(R.id.button_mic);
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-        background = findViewById(R.id.background);
 
         final Intent speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-
+        speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say a position, then 'color', and then a color. Or say 'all', then 'color', and then a color. Or say 'draw' and a keyword");
         speechRecognizer.setRecognitionListener(recognitionListener);
 
-        micButton.setOnTouchListener((view, motionEvent) -> {
-            if (motionEvent.getAction() == MotionEvent.ACTION_UP){
-                speechRecognizer.stopListening();
-            }
-            if (motionEvent.getAction() == MotionEvent.ACTION_DOWN){
-                micButton.setImageResource(R.drawable.icons8_microphone_blue_60);
-                speechRecognizer.startListening(speechRecognizerIntent);
-            }
-            return false;
+        goToInstructionsButton.setOnClickListener((view) -> goToInstructionsLayout());
+
+        micButton.setOnClickListener((view) -> {
+            micButton.setImageResource(R.drawable.icons8_microphone_red_60);
+            speechRecognizer.startListening(speechRecognizerIntent);
         });
+    }
+
+    /** Instruction button -----------------------------------------------------------------------*/
+    // Navigate to the second layout file
+    private void goToInstructionsLayout() {
+        // Create an intent to start the second activity
+        Intent intent = new Intent(this, InstructionsActivity.class);
+        // Start the activity
+        startActivity(intent);
     }
 
     /** Speech Recognizer ------------------------------------------------------------------------*/
@@ -110,24 +108,39 @@ public class MainActivity extends AppCompatActivity {
         public void onResults(Bundle bundle) {
             micButton.setImageResource(R.drawable.icons8_microphone_60);
             ArrayList<String> data = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-            String[] words = data.get(0).split("\\W+");
-            textView.setText(data.get(0));
-            if(!words[0].equalsIgnoreCase("color") || words.length < 2) {
-                return;
+            if (data != null && !data.isEmpty()) {
+
+                // Get the first recognized word
+                String input = data.get(0);
+                textView.setText(data.get(0));
+
+                if (input.startsWith("draw")) {
+                    String keyword = extractKeyword(input);
+                    DrawAsyncTaskRunner runner2 = new DrawAsyncTaskRunner(keyword);
+                    runner2.execute();
+                } else {
+                    String[] words = input.split("\\s+");
+                    if (words.length >= 3) {
+                        // Get the position, the color keyword, and the color
+                        String position = words[0];
+                        String colorWord = words[1];
+                        String color = words[2];
+
+                        // Check if the color keyword is "color" or "colour"
+                        if (!"color".equalsIgnoreCase(colorWord) && !"colour".equalsIgnoreCase(colorWord)) {
+                            return;
+                        }
+                        // Combine words like "light blue" into "lightblue"
+                        for (int i = 3; i < words.length; i++) {
+                            color += words[i];
+                        }
+
+                        color = color.toLowerCase();
+                        ColorAsyncTaskRunner runner = new ColorAsyncTaskRunner(position, color);
+                        runner.execute();
+                    }
+                }
             }
-            String curColor = words[1].toLowerCase();
-            if(words.length > 2 && (curColor.equalsIgnoreCase("light") || curColor.equalsIgnoreCase("dark")))
-            {
-                curColor += words[2].toLowerCase();
-            }
-            try {
-                background.setBackgroundColor(Color.parseColor(curColor));
-            } catch (Exception e) {
-                System.out.println(curColor + " is not a color");
-                return;
-            }
-            ColorAsyncTaskRunner runner = new ColorAsyncTaskRunner(curColor);
-            runner.execute();
         }
 
         @Override
@@ -136,6 +149,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onEvent(int i, Bundle bundle) {}
     };
+
+    private String extractKeyword(String input) {
+        String keyword = input.substring(5).trim();
+        keyword = keyword.replaceAll("^(a |an )", "");
+        keyword = keyword.replaceAll("\\s", "");
+        keyword = keyword.replaceAll("-", "");
+        return keyword;
+    }
 
     /** Python Run -------------------------------------------------------------------------------*/
 
@@ -179,10 +200,12 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("StaticFieldLeak")
     private class ColorAsyncTaskRunner extends AsyncTask<String, String, String> {
 
+        protected String position;
         protected String color;
 
-        protected ColorAsyncTaskRunner(String pColor) {
+        protected ColorAsyncTaskRunner(String pPosition, String pColor) {
             super();
+            position = pPosition;
             color = pColor;
         }
 
@@ -190,7 +213,35 @@ public class MainActivity extends AppCompatActivity {
         protected String doInBackground(String... params) {
             String status = "";
             try {
-                run("python IoTProject/LED.py " + color);
+                run("sudo python3 IoTProject/ColorChessboard.py " + position + " " + color);
+                status = "success";
+            } catch (Exception e) {
+                e.printStackTrace();
+                status = "error";
+            }
+            return status;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {}
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private class DrawAsyncTaskRunner extends AsyncTask<String, String, String> {
+
+        protected String keyword;
+
+        protected DrawAsyncTaskRunner(String pKeyword) {
+            super();
+            keyword = pKeyword;
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            String status = "";
+            try {
+                System.out.println("sudo python3 IoTProject/ImageChessboard.py " + keyword);
+                run("sudo python3 IoTProject/ImageChessboard.py " + keyword);
                 status = "success";
             } catch (Exception e) {
                 e.printStackTrace();
@@ -227,4 +278,5 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         speechRecognizer.destroy();
     }
+
 }

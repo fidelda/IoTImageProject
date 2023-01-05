@@ -28,6 +28,12 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+
+        <activity
+            android:name=".InstructionsActivity"
+            android:label="Instructions"
+        />
+
     </application>
 
 </manifest>
